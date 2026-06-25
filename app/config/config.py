@@ -3,16 +3,18 @@ import jwt
 import bcrypt
 
 
+
 DATABASE_URL = 'postgresql+asyncpg://postgres:147963@localhost:5432/my_db'
-
-#Token encode/Decode
-
 SECRET_KEY = "D9r5AgJtWhAqquS8X52U0dFSRZc9pJvahXQy914dEw3"
 ALGORITHM = "HS256"
 
 
+#Token encode/Decode
+
+BD_TZ = datetime.timezone(datetime.timedelta(hours=6))
+
 def encode_access_token(user_id: int, email: str):
-    exp = datetime.datetime.now() + datetime.timedelta(hours=24)
+    exp = datetime.datetime.now(tz=BD_TZ) + datetime.timedelta(minutes=30)
     payload = {
         "user_id": user_id,
         "email": email,

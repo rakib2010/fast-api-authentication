@@ -8,19 +8,56 @@ from app.model.models import User
 from app.schema.schemas import UserProfileResponse, UserRegistrationRequest, UserLoginResponse, UserLoginRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config.config import hash_password, verify_password, encode_access_token
+from app.utils.response import success_response, error_response
 
 router = APIRouter()
 
 
 # Registration
-@router.post("/register", response_model=UserProfileResponse)
-async def register(request: UserRegistrationRequest, db: AsyncSession=Depends(get_db)):
+# @router.post("/register", response_model=UserProfileResponse)
+# async def register(request: UserRegistrationRequest, db: AsyncSession=Depends(get_db)):
+#     new_user = User(
+#         first_name = request.first_name.strip(),
+#         last_name = request.last_name.strip(),
+#         email = request.email.lower().strip(),
+#         phone = (request.phone or "").strip() or None,
+#         password = hash_password(request.password),
+#     )
+#
+#     db.add(new_user)
+#
+#     try:
+#         await db.commit()
+#         await db.refresh(new_user)
+#
+#
+#     except IntegrityError:
+#         await db.rollback()
+#         raise HTTPException(status_code=409, detail="Email already registered")
+#
+#
+#     return UserProfileResponse(
+#         id=new_user.id,
+#         first_name=new_user.first_name,
+#         last_name=new_user.last_name,
+#         email=new_user.email,
+#         phone=new_user.phone,
+#         created_at=new_user.created_at,
+#         updated_at=new_user.updated_at,
+#     )
+
+
+
+
+@router.post("/register")
+async def register(request: UserRegistrationRequest, db: AsyncSession = Depends(get_db)):
+
     new_user = User(
-        first_name = request.first_name.strip(),
-        last_name = request.last_name.strip(),
-        email = request.email.lower().strip(),
-        phone = (request.phone or "").strip() or None,
-        password = hash_password(request.password),
+        first_name=request.first_name.strip(),
+        last_name=request.last_name.strip(),
+        email=request.email.lower().strip(),
+        phone=(request.phone or "").strip() or None,
+        password=hash_password(request.password),
     )
 
     db.add(new_user)
@@ -29,18 +66,20 @@ async def register(request: UserRegistrationRequest, db: AsyncSession=Depends(ge
         await db.commit()
         await db.refresh(new_user)
 
-
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status_code=409, detail="Email already registered")
+        raise HTTPException(status_code=409, detail=error_response("Email already registered", status="error"))
 
-
-    return UserProfileResponse(
-        id=new_user.id,
-        first_name=new_user.first_name,
-        last_name=new_user.last_name,
-        email=new_user.email,
-        phone=new_user.phone,
+    return success_response(
+        data=UserProfileResponse(
+            id=new_user.id,
+            first_name=new_user.first_name,
+            last_name=new_user.last_name,
+            email=new_user.email,
+            phone=new_user.phone,
+            created_at=new_user.created_at,
+            updated_at=new_user.updated_at,
+        ),
         created_at=new_user.created_at,
         updated_at=new_user.updated_at,
     )
@@ -59,7 +98,7 @@ async def login(request: UserLoginRequest, db: AsyncSession = Depends(get_db)):
         )
     raise HTTPException(
         status_code=401,
-        detail= "incorrect email or password",
+        detail= "Unauthorized",
         headers={"WWW-Authenticate": "Bearer"},)
 
 
